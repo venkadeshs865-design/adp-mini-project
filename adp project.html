@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Power System Monitoring</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:white;
+text-align:center;
+margin:0;
+}
+
+.container{
+background:white;
+color:black;
+width:350px;
+margin:auto;
+margin-top:25px;
+padding:25px;
+border-radius:10px;
+box-shadow:0px 5px 15px rgba(0,0,0,0.3);
+}
+
+input{
+width:90%;
+padding:10px;
+margin:8px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px 20px;
+background:#007BFF;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+margin-top:10px;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+canvas{
+margin-top:30px;
+background:white;
+padding:20px;
+border-radius:10px;
+}
+
+table{
+margin:auto;
+margin-top:30px;
+border-collapse:collapse;
+background:white;
+color:black;
+}
+
+th,td{
+padding:10px;
+border:1px solid #ddd;
+}
+
+th{
+background:#007BFF;
+color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚡ Smart Power System Monitoring</h1>
+
+<div class="container">
+<h3>Manual Fault Detection</h3>
+
+<input type="number" id="voltage" placeholder="Voltage (V)">
+<input type="number" id="current" placeholder="Current (A)">
+<input type="number" id="impedance" placeholder="Impedance (Ω)">
+
+<button onclick="detectFault()">Analyze System</button>
+
+<h3 id="result"></h3>
+<h4 id="solution"></h4>
+</div>
+
+<div class="container">
+<h3>⚡ Real-Time Simulation</h3>
+<button onclick="startSimulation()">Start Monitoring</button>
+<button onclick="stopSimulation()">Stop</button>
+<h3 id="liveData"></h3>
+<h4 id="liveSolution"></h4>
+</div>
+
+<canvas id="faultChart" width="400" height="200"></canvas>
+
+<h2>Fault History</h2>
+
+<table id="historyTable">
+<tr>
+<th>Voltage</th>
+<th>Current</th>
+<th>Impedance</th>
+<th>Status</th>
+<th>Suggested Solution</th>
+</tr>
+</table>
+
+<script>
+let chart;
+let simulationInterval;
+
+// Manual detection
+function detectFault(){
+    let voltage=parseFloat(document.getElementById("voltage").value);
+    let current=parseFloat(document.getElementById("current").value);
+    let impedance=parseFloat(document.getElementById("impedance").value);
+
+    analyzeSystem(voltage,current,impedance,"manual");
+}
+
+// Analyze system and show solution
+function analyzeSystem(voltage,current,impedance,type){
+    let result="";
+    let solution="";
+
+    if(current>50 && voltage<220){
+        result="⚠ Short Circuit Fault";
+        solution="Check circuit breakers and isolate the faulty section.";
+    }
+    else if(current>40 && impedance<3){
+        result="⚠ Line-to-Line Fault";
+        solution="Inspect lines for short circuits and repair insulation.";
+    }
+    else if(voltage<200){
+        result="⚠ Line-to-Ground Fault";
+        solution="Check grounding system and repair faulty insulation.";
+    }
+    else{
+        result="✅ System Normal";
+        solution="No action required.";
+    }
+
+    if(type==="manual"){
+        document.getElementById("result").innerHTML=result;
+        document.getElementById("solution").innerHTML="💡 Suggested Action: "+solution;
+    } else {
+        document.getElementById("liveData").innerHTML=
+            "Voltage: "+voltage+" V | Current: "+current+" A | Impedance: "+impedance+" Ω";
+        document.getElementById("liveSolution").innerHTML="💡 Suggested Action: "+solution;
+    }
+
+    drawChart(voltage,current,impedance);
+    addHistory(voltage,current,impedance,result,solution);
+}
+
+// Draw chart
+function drawChart(v,c,i){
+    const ctx=document.getElementById("faultChart").getContext("2d");
+    if(chart) chart.destroy();
+    chart=new Chart(ctx,{
+        type:"bar",
+        data:{
+            labels:["Voltage","Current","Impedance"],
+            datasets:[{
+                label:"Electrical Parameters",
+                data:[v,c,i],
+                backgroundColor:["#ff6384","#36a2eb","#ffce56"]
+            }]
+        }
+    });
+}
+
+// Add to history
+function addHistory(v,c,i,res,sol){
+    let table=document.getElementById("historyTable");
+    let row=table.insertRow();
+    row.insertCell(0).innerHTML=v;
+    row.insertCell(1).innerHTML=c;
+    row.insertCell(2).innerHTML=i;
+    row.insertCell(3).innerHTML=res;
+    row.insertCell(4).innerHTML=sol;
+}
+
+// Real-time simulation
+function startSimulation(){
+    simulationInterval=setInterval(function(){
+        let voltage=Math.floor(Math.random()*80)+180;
+        let current=Math.floor(Math.random()*60)+10;
+        let impedance=Math.floor(Math.random()*5)+1;
+
+        analyzeSystem(voltage,current,impedance,"auto");
+    },3000);
+}
+
+function stopSimulation(){
+    clearInterval(simulationInterval);
+}
+</script>
+</body>
+</html>
